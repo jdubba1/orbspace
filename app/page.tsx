@@ -134,10 +134,10 @@ export default function Home() {
     );
   };
 
-  const [backgroundImage, setBackgroundImage] = useState<string | null>(
-    null
-  ); // Default background
-
+  // const [backgroundImage, setBackgroundImage] = useState<string | null>(
+  //   null
+  // ); // Default background
+const backgroundImage = null
   // const handleBackgroundChange = (value: string) => {
   //   setBackgroundImage(value === "none" ? null : value);
   // };
