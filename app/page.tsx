@@ -1,13 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -138,9 +138,9 @@ export default function Home() {
     null
   ); // Default background
 
-  const handleBackgroundChange = (value: string) => {
-    setBackgroundImage(value === "none" ? null : value);
-  };
+  // const handleBackgroundChange = (value: string) => {
+  //   setBackgroundImage(value === "none" ? null : value);
+  // };
 
   return (
     <div
@@ -262,7 +262,7 @@ export default function Home() {
                 + add position
               </button>
               <div>
-                <Select onValueChange={handleBackgroundChange}>
+                {/*<Select onValueChange={handleBackgroundChange}>
                   <SelectTrigger className="w-48 bg-gray-800 text-white h-10">
                     <SelectValue placeholder="Select Background" />
                   </SelectTrigger>
@@ -271,8 +271,8 @@ export default function Home() {
                     <SelectItem value="bg-1.jpg">Background 1</SelectItem>
                     <SelectItem value="bg-2.jpg">Background 2</SelectItem>
                   </SelectContent>
-                </Select>
-              </div>
+                </Select>*/}
+              </div> 
             </div>
           </div>
         </div>
