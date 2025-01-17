@@ -1,7 +1,12 @@
-
-
-
 "use client";
+
+
+// COLOR SCHEME
+// JET : #343434
+// AMARANTH: #CE4257
+// CORAL: #FF7F51
+// SANDY BROWN: FF9B54
+// STEEL BLUE: #4F7CAC
 
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
@@ -67,31 +72,103 @@ export default function Home() {
   return (
     <div className="relative w-full h-screen">
       <Canvas
-        camera={{ position: [0, 5, 10], fov: 50 }}
-        style={{ background: "rgb(31, 41, 55)" }}
-      >
-        {/* Lighting */}
-        <ambientLight intensity={0.5} />
-        <pointLight position={[10, 10, 10]} />
+  camera={{ position: [0, 5, 10], fov: 50 }}
+  style={{ background: "#000" }} // Fallback for unsupported browsers
+>
+  {/* Lighting */}
+  <ambientLight intensity={0.5} />
+  <pointLight position={[10, 10, 10]} />
 
-        {/* Orbit Controls with Zoom */}
-        <OrbitControls
-          enableZoom={true}
-          zoomSpeed={0.5}
-          minDistance={5} // Minimum zoom distance
-          maxDistance={20} // Maximum zoom distance
-        />
+  {/* Orbit Controls */}
+  <OrbitControls
+    enableZoom={true}
+    zoomSpeed={0.5}
+    minDistance={5}
+    maxDistance={20}
+  />
 
-        {/* Orbs */}
-        {orbs.map((orb) => (
-          <Orb
-            key={orb.id}
-            id={orb.id}
-            position={orb.position}
-            isActive={activeOrbId === orb.id}
-          />
-        ))}
-      </Canvas>
+  {/* Gradient Sphere Background */}
+  <mesh>
+  <sphereGeometry args={[500, 64, 64]} /> {/* Large sphere */}
+  <shaderMaterial
+    side={THREE.BackSide} // Render the inside of the sphere
+    uniforms={{
+      uColor1: { value: new THREE.Color("#4F7CAC") }, // Blue
+      uColor2: { value: new THREE.Color("#343434") }, // Gray
+      uColor3: { value: new THREE.Color("#CE4257") }, // Red
+      uNoiseScale: { value: 1.5 }, // Noise scale
+      uBlendFactor: { value: 0.5 }, // Control blending strength
+    }}
+    fragmentShader={`
+      uniform vec3 uColor1;
+      uniform vec3 uColor2;
+      uniform vec3 uColor3;
+      uniform float uNoiseScale;
+      uniform float uBlendFactor;
+      varying vec3 vPosition;
+
+      // Simple random function
+      float random(vec3 p) {
+        return fract(sin(dot(p, vec3(12.9898, 78.233, 45.164))) * 43758.5453);
+      }
+
+      // Simple 3D noise function
+      float noise(vec3 p) {
+        vec3 i = floor(p);
+        vec3 f = fract(p);
+        f = f * f * (3.0 - 2.0 * f);
+
+        return mix(
+          mix(
+            mix(random(i), random(i + vec3(1.0, 0.0, 0.0)), f.x),
+            mix(random(i + vec3(0.0, 1.0, 0.0)), random(i + vec3(1.0, 1.0, 0.0)), f.x),
+            f.y
+          ),
+          mix(
+            mix(random(i + vec3(0.0, 0.0, 1.0)), random(i + vec3(1.0, 0.0, 1.0)), f.x),
+            mix(random(i + vec3(0.0, 1.0, 1.0)), random(i + vec3(1.0, 1.0, 1.0)), f.x),
+            f.y
+          ),
+          f.z
+        );
+      }
+
+      void main() {
+        vec3 normalizedPosition = normalize(vPosition);
+
+        // Calculate the noise-based distortion
+        float noiseFactor = noise(normalizedPosition * uNoiseScale);
+
+        // Balanced gradient blending
+        float mixFactor = 0.5 + normalizedPosition.y * uBlendFactor + noiseFactor * 0.25;
+
+        vec3 color = mix(uColor1, uColor2, mixFactor); // Base gradient
+        color = mix(color, uColor3, abs(noiseFactor * 0.5)); // Add dappled effect
+
+        gl_FragColor = vec4(color, 1.0);
+      }
+    `}
+    vertexShader={`
+      varying vec3 vPosition;
+
+      void main() {
+        vPosition = position; // Pass vertex position to fragment shader
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `}
+  />
+</mesh>
+
+  {/* Orbs or Other Scene Objects */}
+  {orbs.map((orb) => (
+    <Orb
+      key={orb.id}
+      id={orb.id}
+      position={orb.position}
+      isActive={activeOrbId === orb.id}
+    />
+  ))}
+</Canvas>
       {showTerminal && (
         <div className=" absolute bottom-16 left-4 w-[300px] bg-black bg-opacity-90 text-white p-4 rounded-lg shadow-lg">
           <div className="flex justify-between items-center mb-4">
@@ -169,7 +246,7 @@ function Orb({
     const innerOrbRadius = 0.4; // Radius of the inner orb (exclude particles here)
     const outerOrbRadius = 1; // Outer radius for the particle cloud
   
-    for (let i = 0; i < 500; i++) {
+    for (let i = 0; i < 2000; i++) {
       let radius;
   
       // Ensure particles are outside the inner orb radius
@@ -215,10 +292,10 @@ function Orb({
           />
         </bufferGeometry>
         <pointsMaterial
-          color={isActive ? "orange" : "white"}
-          size={0.02}
+          color={isActive ? "#FF9B54" : "white"}
+          size={0.013}
           transparent
-          opacity={0.5}
+          opacity={0.7}
         />
       </points>
 
@@ -227,11 +304,11 @@ function Orb({
         <sphereGeometry args={[0.3, 32, 32]} />
         <meshStandardMaterial
           transparent
-          opacity={0.1}
+          opacity={0.2}
           depthWrite={false} // Ensures text isn't obscured by transparency
-          color={isActive ? "orange" : "white"}
-          emissive={isActive ? "orange" : "white"}
-          emissiveIntensity={0.5}
+          color={isActive ? "#FF9B54" : "white"}
+          emissive={isActive ? "#FF9B54" : "white"}
+          emissiveIntensity={0.9}
         />
       </mesh>
 
@@ -239,7 +316,8 @@ function Orb({
       <Text
         position={[0, 0, 0]} // Place the text at the center of the smaller orb
         fontSize={0.15} // Adjust the font size to fit within the smaller orb
-        color={isActive ? "orange" : "white"}
+        // color={isActive ? "#FF9B54" : "white"}
+        color={"white"}
         anchorX="center"
         anchorY="middle"
       >
