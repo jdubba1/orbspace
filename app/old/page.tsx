@@ -137,7 +137,7 @@ export default function Home() {
   // const [backgroundImage, setBackgroundImage] = useState<string | null>(
   //   null
   // ); // Default background
-const backgroundImage = null
+  const backgroundImage = null;
   // const handleBackgroundChange = (value: string) => {
   //   setBackgroundImage(value === "none" ? null : value);
   // };
@@ -251,7 +251,6 @@ const backgroundImage = null
                   Reset
                 </button>
               </div>
-              
             </div>
 
             <div className="flex gap-2">
@@ -272,7 +271,7 @@ const backgroundImage = null
                     <SelectItem value="bg-2.jpg">Background 2</SelectItem>
                   </SelectContent>
                 </Select>*/}
-              </div> 
+              </div>
             </div>
           </div>
         </div>
