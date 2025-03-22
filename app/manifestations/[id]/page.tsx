@@ -1,27 +1,28 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import Link from "next/link";
 import { X } from "lucide-react";
+import gsap from "gsap";
 
 // Import components and types from our newly structured files
 import { 
   OrbComponent, 
   CameraAnimator, 
-  BackgroundSphere 
+  BackgroundSphere
 } from "@/components/Orbs";
 import { 
-  OrbLevel,
+  OrbLevel, 
   Manifestation, 
   OperationSettings, 
   prepopulatedManifestations 
 } from "@/lib/manifestationData";
 import { OrbDetailsPanel } from "@/components/OrbDetailsPanel";
 import { BreadcrumbNavigation } from "@/components/BreadcrumbNavigation";
-import { OperationControls } from "@/components/OperationControls";
+import { ManifestationControls } from "@/components/ManifestationControls";
 
 // Import OrbitControls type from three
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
@@ -191,21 +192,48 @@ export default function ManifestationPage({ params }: ManifestationPageProps) {
     setCurrentManifestation(updatedManifestation);
   };
 
+  // Predefined positions for all possible orbs (up to 8)
+  const PREDEFINED_ORB_POSITIONS = [
+    // All positions are designed to work well with the adjusted camera view
+    // First orb (center)
+    new THREE.Vector3(0, 0, 0),
+    
+    // Second orb (right of center)
+    new THREE.Vector3(3.5, 0, 0),
+    
+    // Third orb (bottom left of center)
+    new THREE.Vector3(-1.75, 0, 3),
+    
+    // Fourth orb (top point of tetrahedron)
+    new THREE.Vector3(0.5, 3.5, 1),
+    
+    // Fifth orb (above first triangle face)
+    new THREE.Vector3(0.58, 1.2, 1),
+    
+    // Sixth orb (above second triangle face)
+    new THREE.Vector3(2.3, 1.2, 1),
+    
+    // Seventh orb (above third triangle face)
+    new THREE.Vector3(-0.6, 1.2, 2.8),
+    
+    // Eighth orb (centered above the structure)
+    new THREE.Vector3(0.6, 2.2, 1.2)
+  ];
+
   // Add a new orb to the current level
-  const addOrb = (position?: THREE.Vector3) => {
+  const addOrb = () => {
     const maxOrbs = 8;
     if (currentLevel.orbs.length >= maxOrbs) return;
     
     // Generate a new orb ID
     const newOrbId = Math.max(...currentLevel.orbs.map(o => o.id), 0) + 1;
     
+    // Get the next predefined position
+    const position = PREDEFINED_ORB_POSITIONS[currentLevel.orbs.length];
+    
     const newOrb = {
       id: newOrbId,
-      position: position || new THREE.Vector3(
-        Math.random() * 6 - 3,
-        Math.random() * 6 - 3,
-        Math.random() * 6 - 3
-      ),
+      position: position,
       name: `New Orb ${newOrbId}`,
       description: "Add your description here",
       // No childLevelId initially
@@ -319,20 +347,98 @@ export default function ManifestationPage({ params }: ManifestationPageProps) {
     };
   }
 
+  // Add a function to zoom camera back out when closing details panel
+  const zoomOutCamera = () => {
+    // Only zoom out if we're currently zoomed in
+    if (selectedOrb !== null) {
+      setIsZooming(true);
+      
+      // Center point of the current level (average of all orb positions)
+      const center = new THREE.Vector3();
+      currentLevel.orbs.forEach(orb => {
+        center.add(orb.position);
+      });
+      center.divideScalar(currentLevel.orbs.length);
+      
+      // Find the furthest orb to ensure all orbs are visible
+      let maxDistance = 0;
+      currentLevel.orbs.forEach(orb => {
+        const distance = orb.position.distanceTo(center);
+        if (distance > maxDistance) {
+          maxDistance = distance;
+        }
+      });
+      
+      // Set target to center of all orbs
+      setCameraTarget(center);
+      
+      // After animation completes, clear selection
+      setTimeout(() => {
+        setIsDetailsOpen(false);
+        setSelectedOrb(null);
+      }, 200); // Short delay before clearing selection
+    } else {
+      // If no orb is selected, just close the panel
+      setIsDetailsOpen(false);
+    }
+  };
+
+  // Center camera on orbs when first loading
+  useEffect(() => {
+    // Short delay to ensure the scene is fully rendered
+    const timer = setTimeout(() => {
+      if (currentLevel.orbs.length > 0 && orbitControlsRef.current) {
+        // Calculate center of orbs
+        const center = new THREE.Vector3();
+        currentLevel.orbs.forEach(orb => {
+          center.add(orb.position);
+        });
+        center.divideScalar(currentLevel.orbs.length);
+        
+        // Set orbit controls target to center of orbs
+        if (orbitControlsRef.current) {
+          gsap.to(orbitControlsRef.current.target, {
+            x: center.x,
+            y: center.y,
+            z: center.z,
+            duration: 1.5,
+            ease: "power2.inOut"
+          });
+        }
+      }
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [currentLevel.orbs, navigationStack.length]);
+
   return (
     <div className="relative w-full h-screen">
-      <Canvas camera={{ position: [0, 5, 10], fov: 50 }} style={{ background: "#000" }}>
+      <Canvas 
+        camera={{ 
+          position: [7, 3, 12], // Adjusted position (slightly down and right)
+          fov: 50 
+        }} 
+        style={{ background: "#000" }}
+      >
         {/* Lighting */}
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} />
 
-        {/* Orbit Controls */}
+        {/* Orbit Controls with tighter constraints */}
         <OrbitControls 
           ref={orbitControlsRef}
           enableZoom 
           zoomSpeed={0.5} 
           minDistance={5} 
-          maxDistance={20} 
+          maxDistance={20}
+          // More restricted rotation to prevent seeing text from behind
+          minAzimuthAngle={-Math.PI / 4} // Reduced left rotation
+          maxAzimuthAngle={Math.PI / 4}  // Reduced right rotation
+          minPolarAngle={Math.PI / 4}    // Increased min upward tilt 
+          maxPolarAngle={Math.PI / 1.5}  // Reduced max downward tilt
+          // Improve dampening for smoother camera movement
+          enableDamping
+          dampingFactor={0.05}
         />
         
         {/* Camera animation */}
@@ -350,6 +456,14 @@ export default function ManifestationPage({ params }: ManifestationPageProps) {
 
         {/* Background */}
         <BackgroundSphere />
+
+        {/* Sacred Geometry Connections */}
+        {currentLevel.orbs.length >= 2 && (
+          <SacredGeometryLines 
+            orbs={currentLevel.orbs} 
+            isRootLevel={isRootLevel} 
+          />
+        )}
 
         {/* Render Orbs */}
         {currentLevel.orbs.map((orb) => (
@@ -388,7 +502,7 @@ export default function ManifestationPage({ params }: ManifestationPageProps) {
 
       {/* Control Buttons */}
       <div className="absolute bottom-4 left-4 flex flex-row space-x-2">
-        <button
+        {/* <button
           className="px-4 py-2 bg-green-500 text-white rounded disabled:opacity-50"
           onClick={() => addOrb()}
           disabled={currentLevel.orbs.length >= 8}
@@ -400,12 +514,16 @@ export default function ManifestationPage({ params }: ManifestationPageProps) {
           onClick={resetManifestation}
         >
           Reset
-        </button>
+        </button> */}
         
         {/* Operation Controls */}
-        <OperationControls 
+        <ManifestationControls 
           isRootLevel={isRootLevel} 
           operationSettings={operationSettings}
+          orbCount={currentLevel.orbs.length}
+          maxOrbs={8}
+          onAddOrb={addOrb}
+          onReset={resetManifestation}
           onToggleOperation={toggleOperation}
           onUpdateSettings={updateOperationSettings}
         />
@@ -416,11 +534,137 @@ export default function ManifestationPage({ params }: ManifestationPageProps) {
         <OrbDetailsPanel
           orb={currentLevel.orbs.find(o => o.id === selectedOrb)!}
           isRootLevel={isRootLevel}
-          onClose={() => setIsDetailsOpen(false)}
+          onClose={zoomOutCamera}
           onUpdate={(updates) => updateOrbDetails(selectedOrb, updates)}
           onEnterLevel={() => enterOrbLevel(selectedOrb)}
         />
       )}
     </div>
+  );
+}
+
+// Component to render sacred geometry connections between orbs
+function SacredGeometryLines({ 
+  orbs, 
+  isRootLevel 
+}: { 
+  orbs: { id: number; position: THREE.Vector3 }[]; 
+  isRootLevel: boolean 
+}) {
+  return (
+    <group>
+      {/* Circular connections - connect each orb to the next */}
+      {orbs.map((orb, i) => (
+        <OrbConnection 
+          key={`circle-${i}`}
+          startOrb={orb}
+          endOrb={orbs[(i + 1) % orbs.length]}
+          isRootLevel={isRootLevel}
+          index={i}
+        />
+      ))}
+      
+      {/* Diagonal connections for 4+ orbs */}
+      {orbs.length >= 4 && orbs.map((orb, i) => (
+        <OrbConnection 
+          key={`diagonal-${i}`}
+          startOrb={orb}
+          endOrb={orbs[(i + 2) % orbs.length]}
+          isRootLevel={isRootLevel}
+          index={i + 100} // Different phase for diagonals
+          thickness={0.02} // Thinner lines
+          opacity={0.4} // More transparent
+        />
+      ))}
+      
+      {/* Cross connections for even number of orbs */}
+      {orbs.length >= 4 && orbs.length % 2 === 0 && orbs.slice(0, orbs.length / 2).map((orb, i) => (
+        <OrbConnection 
+          key={`cross-${i}`}
+          startOrb={orb}
+          endOrb={orbs[i + orbs.length / 2]}
+          isRootLevel={isRootLevel}
+          index={i + 200} // Different phase for cross connections
+          thickness={0.025} // Medium thickness
+          opacity={0.5} // Medium opacity
+        />
+      ))}
+    </group>
+  );
+}
+
+// Component for a single orb connection with animation
+function OrbConnection({ 
+  startOrb, 
+  endOrb, 
+  index,
+  thickness = 0.01, // Much thinner default
+  opacity = 0.4     // More transparent default
+}: { 
+  startOrb: { id: number; position: THREE.Vector3 }; 
+  endOrb: { id: number; position: THREE.Vector3 };
+  isRootLevel?: boolean; // Make optional since we're not using it
+  index: number;
+  thickness?: number;
+  opacity?: number;
+}) {
+  const lineRef = useRef<THREE.Mesh>(null);
+  
+  // Animation for the connection
+  useFrame(({ clock }) => {
+    if (lineRef.current && lineRef.current.material) {
+      const material = lineRef.current.material as THREE.MeshBasicMaterial;
+      // Create a unique animation phase for each connection
+      const phase = index * 0.3;
+      const pulse = Math.sin(clock.getElapsedTime() * 1.2 + phase) * 0.5 + 0.5;
+      material.opacity = (opacity * 0.3) + (pulse * opacity);
+    }
+  });
+  
+  // Buffer distance from the orb centers
+  const bufferDistance = 0.4;
+  
+  // Calculate start and end points with buffer
+  const direction = endOrb.position.clone().sub(startOrb.position).normalize();
+  const reverseDirection = direction.clone().negate();
+  
+  const startPoint = startOrb.position.clone().add(direction.clone().multiplyScalar(bufferDistance));
+  const endPoint = endOrb.position.clone().add(reverseDirection.multiplyScalar(bufferDistance));
+  
+  // Calculate length of line
+  const length = startPoint.distanceTo(endPoint);
+  
+  // Calculate midpoint and rotation to align cylinder with the line direction
+  const midpoint = new THREE.Vector3().addVectors(startPoint, endPoint).multiplyScalar(0.5);
+  const quaternion = new THREE.Quaternion();
+  
+  // Set up quaternion for rotation - aligning cylinder with the connection line
+  const up = new THREE.Vector3(0, 1, 0);
+  const axis = new THREE.Vector3().crossVectors(up, direction).normalize();
+  const angle = Math.acos(up.dot(direction));
+  quaternion.setFromAxisAngle(axis, angle);
+  
+  return (
+    <mesh 
+      ref={lineRef} 
+      position={midpoint}
+      quaternion={quaternion}
+    >
+      <cylinderGeometry 
+        args={[
+          thickness, // radiusTop
+          thickness, // radiusBottom
+          length,    // height
+          8,         // radialSegments
+          1,         // heightSegments
+          false      // openEnded
+        ]} 
+      />
+      <meshBasicMaterial 
+        transparent={true} 
+        opacity={opacity} 
+        color={"#ffffff"} // White lines for all connections
+      />
+    </mesh>
   );
 }

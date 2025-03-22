@@ -27,7 +27,7 @@ export default function MenuScreen() {
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-xl font-semibold">Your Manifestations</h2>
           <Link 
-            href="/3d/new"
+            href="/manifestations/new"
             className="px-4 py-2 bg-indigo-600 rounded-md flex items-center space-x-2 hover:bg-indigo-700 transition duration-200"
           >
             <Plus size={16} />
@@ -39,7 +39,7 @@ export default function MenuScreen() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {manifestations.map(manifestation => (
             <Link 
-              href={`/3d/${manifestation.id}`} 
+              href={`/manifestations/${manifestation.id}`} 
               key={manifestation.id}
               className="bg-gray-800 bg-opacity-50 rounded-lg p-5 hover:bg-opacity-70 transition duration-200 border border-gray-700"
             >
@@ -81,7 +81,7 @@ export default function MenuScreen() {
           <div className="text-center py-12">
             <p className="text-gray-400 mb-4">You haven&apos;t created any manifestations yet.</p>
             <Link 
-              href="/3d/new"
+              href="/manifestations/new"
               className="px-4 py-2 bg-indigo-600 rounded-md inline-flex items-center space-x-2 hover:bg-indigo-700 transition duration-200"
             >
               <Plus size={16} />

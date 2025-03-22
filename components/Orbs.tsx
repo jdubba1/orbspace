@@ -281,4 +281,123 @@ export function BackgroundSphere() {
       />
     </mesh>
   );
+}
+
+/**
+ * Creates glowing lines between orbs to create a sacred geometry pattern
+ */
+export function GeometricConnections({ 
+  orbs,
+  isRootLevel 
+}: { 
+  orbs: { id: number; position: THREE.Vector3 }[];
+  isRootLevel: boolean;
+}) {
+  // Create a unique set of connections between orbs
+  const connections = useMemo(() => {
+    if (!orbs || orbs.length < 2) return [];
+    
+    console.log("Creating connections for", orbs.length, "orbs");
+    const lines: [THREE.Vector3, THREE.Vector3][] = [];
+    
+    // For the basic layout, connect each orb to the next in sequence (circular)
+    for (let i = 0; i < orbs.length; i++) {
+      const nextIndex = (i + 1) % orbs.length;
+      lines.push([orbs[i].position.clone(), orbs[nextIndex].position.clone()]);
+    }
+    
+    // For levels with more than 3 orbs, create additional connections
+    // to form sacred geometry patterns
+    if (orbs.length > 3) {
+      // Connect opposite orbs in even-numbered arrangements
+      if (orbs.length % 2 === 0) {
+        for (let i = 0; i < orbs.length / 2; i++) {
+          lines.push([
+            orbs[i].position.clone(), 
+            orbs[i + orbs.length / 2].position.clone()
+          ]);
+        }
+      }
+      
+      // For 4+ orbs, create diagonal connections
+      if (orbs.length >= 4) {
+        for (let i = 0; i < orbs.length; i++) {
+          const diagonalIndex = (i + 2) % orbs.length;
+          lines.push([
+            orbs[i].position.clone(), 
+            orbs[diagonalIndex].position.clone()
+          ]);
+        }
+      }
+    }
+    
+    return lines;
+  }, [orbs]);
+  
+  // Use a simpler line implementation
+  return (
+    <group>
+      {connections.map((connection, index) => (
+        <LineComponent
+          key={index}
+          start={connection[0]}
+          end={connection[1]}
+          color={isRootLevel ? "#4F7CAC" : "#CE4257"}
+          opacity={isRootLevel ? 0.3 : 0.5}
+        />
+      ))}
+    </group>
+  );
+}
+
+// A simpler line implementation using basic Three.js elements
+function LineComponent({ 
+  start, 
+  end, 
+  color, 
+  opacity 
+}: { 
+  start: THREE.Vector3; 
+  end: THREE.Vector3; 
+  color: string;
+  opacity: number;
+}) {
+  const ref = useRef<THREE.Mesh>(null);
+  
+  const geometry = useMemo(() => {
+    // Create a curved line between points for more aesthetic appeal
+    const curve = new THREE.QuadraticBezierCurve3(
+      start,
+      new THREE.Vector3(
+        (start.x + end.x) / 2,
+        (start.y + end.y) / 2 + 0.5, // Add a slight curve upward
+        (start.z + end.z) / 2
+      ),
+      end
+    );
+    
+    // Create a tube geometry along the curve for a more visible line
+    return new THREE.TubeGeometry(curve, 10, 0.02, 8, false);
+  }, [start, end]);
+  
+  // Create pulsing animation
+  useFrame(({ clock }) => {
+    if (ref.current && ref.current.material) {
+      const material = ref.current.material as THREE.MeshBasicMaterial;
+      // Gentle pulsing based on sine wave
+      const pulse = Math.sin(clock.getElapsedTime() * 1.5) * 0.3 + 0.7;
+      material.opacity = opacity * pulse;
+    }
+  });
+  
+  return (
+    <mesh ref={ref} geometry={geometry}>
+      <meshBasicMaterial 
+        color={color} 
+        transparent={true} 
+        opacity={opacity} 
+        fog={true}
+      />
+    </mesh>
+  );
 } 

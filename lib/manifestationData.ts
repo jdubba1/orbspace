@@ -61,8 +61,8 @@ export interface User {
   manifestations: string[]; // IDs of manifestations
 }
 
-// Scaling factor for orb positions
-const scaleFactor = 2;
+// Scaling factor for orb positions - increased for more spacing
+const scaleFactor = 3.5; // Changed from 2 to 3.5 for wider spacing
 
 // Sample sigil images
 export const sampleSigils = [
