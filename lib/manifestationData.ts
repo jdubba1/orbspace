@@ -1,37 +1,32 @@
+// * Manifestation Data Types and Constants
+// ? This module defines the core data structures and types for the manifestation system
+// ! Critical for type safety and data management throughout the application
+
 import * as THREE from 'three';
 
-/**
- * Types of focus for operations
- */
-export type OperationFocus = "balanced" | "intense" | "subtle" | "pulsing";
+// * Operation Settings Types
+// ? Defines how operations behave in the manifestation
+export type OperationFocus = 'balanced' | 'intense' | 'subtle' | 'pulsing';
 
-/**
- * Settings for running an operation
- */
 export interface OperationSettings {
   isRunning: boolean;
-  frequency: number; // milliseconds between activations
+  frequency: number;  // ? Milliseconds between operations
   focus: OperationFocus;
   activeOrbId: number | null;
 }
 
-/**
- * An orb within a level
- */
+// * Orb Structure
+// ? Defines the properties of an individual orb
 export interface Orb {
   id: number;
   position: THREE.Vector3;
-  name?: string;
-  description?: string;
-  image?: string;
-  sigil?: string;
-  randomNumber?: number;
-  childLevelId?: string; // Reference to a child level if this orb has children
+  name: string;
+  description: string;
+  childLevelId?: string;  // ? ID of the nested level if this orb contains one
 }
 
-/**
- * A level within a manifestation
- */
+// * Level Structure
+// ? Defines a level in the manifestation hierarchy
 export interface OrbLevel {
   id: string;
   name: string;
@@ -39,40 +34,126 @@ export interface OrbLevel {
   operationSettings: OperationSettings;
 }
 
-/**
- * A complete manifestation with multiple levels
- */
+// * Complete Manifestation Structure
+// ? Defines the full manifestation object including all levels
 export interface Manifestation {
   id: string;
   name: string;
-  description?: string;
   rootLevel: OrbLevel;
-  levels: Record<string, OrbLevel>; // Map of level IDs to levels
+  levels: { [key: string]: OrbLevel };  // ? Map of all levels by ID
   createdAt: Date;
   updatedAt: Date;
 }
 
-/**
- * A user of the application
- */
+// * User Profile
+// ? Defines user data structure
 export interface User {
   id: string;
   name: string;
-  manifestations: string[]; // IDs of manifestations
+  email: string;
+  manifestations: string[];  // ? IDs of user's manifestations
 }
 
-// Scaling factor for orb positions - increased for more spacing
-const scaleFactor = 3.5; // Changed from 2 to 3.5 for wider spacing
+// * Configuration Constants
+// ? Defines various constants used throughout the application
 
-// Sample sigil images
+// * Scaling factor for orb positions
+// ! Important for visual spacing - increased for better orb separation
+export const scaleFactor = 3.5;  // ? Changed from 2 to 3.5 for wider spacing
+
+// * Sample Sigil Data
+// ? Placeholder data for development and testing
 export const sampleSigils = [
-  "sigil1", "sigil2", "sigil3", "sigil4", "sigil5", "sigil6"
+  '/sigils/sigil1.svg',
+  '/sigils/sigil2.svg',
+  '/sigils/sigil3.svg',
+  '/sigils/sigil4.svg',
+  '/sigils/sigil5.svg',
 ];
 
-// Initialize our prepopulated manifestations
-export const prepopulatedManifestations: Record<string, Manifestation> = {
-  "1": createLifeAspectsManifestation(),
-  "2": createStarManifestation(),
+// * Sample Manifestation Data
+// ? Example manifestation for development and testing
+export const sampleManifestation: Manifestation = {
+  id: 'sample1',
+  name: 'Sample Manifestation',
+  rootLevel: {
+    id: 'root',
+    name: 'Root Level',
+    orbs: [
+      {
+        id: 1,
+        position: new THREE.Vector3(-2 * scaleFactor, 0, -2 * scaleFactor),
+        name: 'Health & Wellness',
+        description: 'Focus on physical and mental well-being',
+      },
+      {
+        id: 2,
+        position: new THREE.Vector3(2 * scaleFactor, 0, -2 * scaleFactor),
+        name: 'Career Growth',
+        description: 'Professional development and success',
+      },
+      {
+        id: 3,
+        position: new THREE.Vector3(2 * scaleFactor, 0, 2 * scaleFactor),
+        name: 'Relationships',
+        description: 'Nurturing connections and bonds',
+      },
+      {
+        id: 4,
+        position: new THREE.Vector3(-2 * scaleFactor, 0, 2 * scaleFactor),
+        name: 'Personal Growth',
+        description: 'Self-improvement and spiritual development',
+      },
+    ],
+    operationSettings: {
+      isRunning: false,
+      frequency: 1000,
+      focus: 'balanced',
+      activeOrbId: null,
+    },
+  },
+  levels: {},  // ? Additional levels will be added as users create them
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+
+// * Helper Functions
+// ? Utility functions for manifestation operations
+
+// * Create Empty Manifestation
+// ? Generates a new empty manifestation structure
+export function createEmptyManifestation(name: string = 'New Manifestation'): Manifestation {
+  const rootLevel: OrbLevel = {
+    id: 'root',
+    name: 'Root Level',
+    orbs: [],
+    operationSettings: {
+      isRunning: false,
+      frequency: 1000,  // ? Default to 1 second intervals
+      focus: 'balanced',
+      activeOrbId: null,
+    },
+  };
+
+  return {
+    id: `manifest_${Date.now()}`,  // ? Generate unique ID based on timestamp
+    name,
+    rootLevel,
+    levels: {
+      root: rootLevel,
+    },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+}
+
+// * Default Operation Settings
+// ? Provides default values for new operation settings
+export const defaultOperationSettings: OperationSettings = {
+  isRunning: false,
+  frequency: 1000,  // ? Default to 1 second intervals
+  focus: 'balanced',
+  activeOrbId: null,
 };
 
 /**

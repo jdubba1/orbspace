@@ -1,8 +1,14 @@
+// * Manifestation Controls Component
+// ? This component handles all user interactions for controlling the manifestation
+// ! This is the main control interface for the entire application
+
 import { useState, useRef, useEffect } from 'react';
 import { Play, Square, Settings, X, Plus, RefreshCw, ChevronDown } from 'lucide-react';
 import { OperationSettings, OperationFocus } from '@/lib/manifestationData';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// * Interface Definition
+// ? Defines the required props for the ManifestationControls component
 interface ManifestationControlsProps {
   isRootLevel: boolean;
   operationSettings: OperationSettings;
@@ -14,6 +20,43 @@ interface ManifestationControlsProps {
   onUpdateSettings: (updates: Partial<OperationSettings>) => void;
 }
 
+// * Custom Button Component
+// ? Provides a consistent ethereal button style across the application
+// @param props - Standard button props plus variant for different styles
+interface EtherealButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'green' | 'red' | 'purple';
+  children: React.ReactNode;
+}
+
+// * Ethereal Button Implementation
+function EtherealButton({ variant = 'purple', children, className = '', ...props }: EtherealButtonProps) {
+  // ? Define color schemes for different button variants
+  const variantStyles = {
+    green: 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500',
+    red: 'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500',
+    purple: 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500'
+  };
+
+  return (
+    <button
+      className={`
+        ${variantStyles[variant]}
+        px-4 py-2 rounded-lg
+        text-white font-medium
+        flex items-center justify-center
+        transition-all duration-300
+        shadow-lg shadow-black/25
+        disabled:opacity-50 disabled:cursor-not-allowed
+        ${className}
+      `}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
+// * Main ManifestationControls Component
 export function ManifestationControls({
   isRootLevel,
   operationSettings,
@@ -24,25 +67,13 @@ export function ManifestationControls({
   onToggleOperation,
   onUpdateSettings
 }: ManifestationControlsProps) {
+  // * State Management
   const [showSettings, setShowSettings] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
 
-  // Handle clicks outside of settings dropdown to close it
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
-        setShowSettings(false);
-      }
-    }
-    
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  // Define frequency options
+  // * Settings Panel Options
+  // ? Define available options for frequency and focus settings
   const frequencyOptions = [
     { value: 500, label: 'Very Fast (0.5s)' },
     { value: 800, label: 'Fast (0.8s)' },
@@ -51,13 +82,25 @@ export function ManifestationControls({
     { value: 2000, label: 'Very Slow (2s)' },
   ];
 
-  // Define focus options
   const focusOptions: { value: OperationFocus, label: string }[] = [
     { value: 'balanced', label: 'Balanced' },
     { value: 'intense', label: 'Intense' },
     { value: 'subtle', label: 'Subtle' },
     { value: 'pulsing', label: 'Pulsing' },
   ];
+
+  // * Click Outside Handler
+  // ? Closes the settings panel when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
+        setShowSettings(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <motion.div 
@@ -196,97 +239,5 @@ export function ManifestationControls({
         </div>
       </motion.div>
     </motion.div>
-  );
-}
-
-// Custom Ethereal Button component
-interface EtherealButtonProps {
-  children: React.ReactNode;
-  onClick: () => void;
-  disabled?: boolean;
-  variant?: 'green' | 'red' | 'purple' | 'blue';
-  className?: string;
-}
-
-function EtherealButton({ 
-  children, 
-  onClick, 
-  disabled, 
-  variant = 'blue',
-  className = ''
-}: EtherealButtonProps) {
-  // Define base colors based on variant
-  const getColors = () => {
-    switch (variant) {
-      case 'green':
-        return {
-          base: 'from-emerald-900/80 to-emerald-700/60',
-          hover: 'from-emerald-800/90 to-emerald-600/70',
-          active: 'from-emerald-700 to-emerald-500/80',
-          border: 'border-emerald-500/30',
-          glow: 'shadow-emerald-500/30',
-          borderHover: 'border-emerald-400/50'
-        };
-      case 'red':
-        return {
-          base: 'from-rose-900/80 to-rose-700/60',
-          hover: 'from-rose-800/90 to-rose-600/70',
-          active: 'from-rose-700 to-rose-500/80',
-          border: 'border-rose-500/30',
-          glow: 'shadow-rose-500/30',
-          borderHover: 'border-rose-400/50'
-        };
-      case 'purple':
-        return {
-          base: 'from-purple-900/80 to-purple-700/60',
-          hover: 'from-purple-800/90 to-purple-600/70',
-          active: 'from-purple-700 to-purple-500/80',
-          border: 'border-purple-500/30',
-          glow: 'shadow-purple-500/30',
-          borderHover: 'border-purple-400/50'
-        };
-      default: // blue
-        return {
-          base: 'from-blue-900/80 to-blue-700/60',
-          hover: 'from-blue-800/90 to-blue-600/70',
-          active: 'from-blue-700 to-blue-500/80',
-          border: 'border-blue-500/30',
-          glow: 'shadow-blue-500/30',
-          borderHover: 'border-blue-400/50'
-        };
-    }
-  };
-  
-  const colors = getColors();
-  
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`
-        relative px-4 py-2 rounded-full flex items-center justify-center
-        text-white font-medium
-        bg-gradient-to-r ${colors.base}
-        border ${colors.border}
-        shadow-md shadow-inner ${colors.glow}
-        backdrop-blur-sm
-        transition-all duration-300
-        hover:bg-gradient-to-r ${colors.hover}
-        hover:border-opacity-80 hover:${colors.borderHover}
-        hover:shadow-lg
-        active:bg-gradient-to-r ${colors.active}
-        active:shadow-inner
-        disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-opacity-70
-        ${className}
-      `}
-    >
-      {/* Inner glow */}
-      <span className={`absolute inset-0 rounded-full bg-gradient-to-r ${colors.base} opacity-0 hover:opacity-20 transition-opacity duration-300`}></span>
-      
-      {/* Content */}
-      <span className="relative flex items-center justify-center">
-        {children}
-      </span>
-    </button>
   );
 } 

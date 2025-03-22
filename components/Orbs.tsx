@@ -1,3 +1,7 @@
+// * Core Orbs Component Module
+// ? This module contains all the 3D components related to orb visualization and interaction
+// ! This is a critical file for the application's core functionality
+
 import { useEffect, useRef, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
@@ -5,18 +9,9 @@ import * as THREE from 'three';
 import { gsap } from 'gsap';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 
-/**
- * Renders a single orb with its particles, text, and hover effects
- */
-export function OrbComponent({
-  orb,
-  isActive,
-  isSelected,
-  isHovered,
-  hasChildren,
-  onClick,
-  onHover,
-}: {
+// * Interface Definitions
+// ? These types define the shape of our component props
+interface OrbComponentProps {
   orb: {
     id: number;
     position: THREE.Vector3;
@@ -28,12 +23,27 @@ export function OrbComponent({
   hasChildren: boolean;
   onClick: () => void;
   onHover: (hovered: boolean) => void;
-}) {
+}
+
+// * Main Orb Component
+// ? Renders a single orb with its visual effects and interactions
+// @param props - The OrbComponentProps object containing all necessary data
+export function OrbComponent({
+  orb,
+  isActive,
+  isSelected,
+  isHovered,
+  hasChildren,
+  onClick,
+  onHover
+}: OrbComponentProps) {
+  // * Refs for animation
   const ref = useRef<THREE.Mesh>(null);
   const pointsRef = useRef<THREE.Points>(null);
   const textRef = useRef<THREE.Group>(null);
   
-  // Generate particle positions for the orb's outer cloud
+  // ? Generate particle positions for the outer cloud effect
+  // ! This is computationally expensive, so we memoize it
   const particlePositions = useMemo(() => {
     const positions = [];
     const innerOrbRadius = 0.4;
@@ -53,6 +63,8 @@ export function OrbComponent({
     return new Float32Array(positions);
   }, []);
 
+  // * Animation Frame Handler
+  // ? Updates the orb's appearance on each frame
   useFrame(({ camera }) => {
     if (ref.current) {
       // Scale based on state
@@ -218,9 +230,8 @@ export function CameraAnimator({
   return null;
 }
 
-/**
- * Component that renders the background sphere with gradient shader
- */
+// * Background Sphere Component
+// ? Creates the ethereal background effect for the 3D space
 export function BackgroundSphere() {
   return (
     <mesh>
@@ -283,9 +294,10 @@ export function BackgroundSphere() {
   );
 }
 
-/**
- * Creates glowing lines between orbs to create a sacred geometry pattern
- */
+// * Geometric Connections Component
+// ? Creates the sacred geometry pattern by drawing lines between orbs
+// @param orbs - Array of orb objects with positions
+// @param isRootLevel - Boolean indicating if this is the root level
 export function GeometricConnections({ 
   orbs,
   isRootLevel 
@@ -293,23 +305,25 @@ export function GeometricConnections({
   orbs: { id: number; position: THREE.Vector3 }[];
   isRootLevel: boolean;
 }) {
-  // Create a unique set of connections between orbs
+  // * Connection Generation
+  // ? Creates a unique set of connections between orbs based on sacred geometry principles
   const connections = useMemo(() => {
     if (!orbs || orbs.length < 2) return [];
     
-    console.log("Creating connections for", orbs.length, "orbs");
+    // TODO: Consider adding more complex sacred geometry patterns for larger numbers of orbs
+    
+    // ? Basic circular connections
     const lines: [THREE.Vector3, THREE.Vector3][] = [];
     
-    // For the basic layout, connect each orb to the next in sequence (circular)
+    // * Create primary connections (circular pattern)
     for (let i = 0; i < orbs.length; i++) {
       const nextIndex = (i + 1) % orbs.length;
       lines.push([orbs[i].position.clone(), orbs[nextIndex].position.clone()]);
     }
     
-    // For levels with more than 3 orbs, create additional connections
-    // to form sacred geometry patterns
+    // * Create additional sacred geometry patterns
     if (orbs.length > 3) {
-      // Connect opposite orbs in even-numbered arrangements
+      // ? For even numbers, connect opposite orbs
       if (orbs.length % 2 === 0) {
         for (let i = 0; i < orbs.length / 2; i++) {
           lines.push([
@@ -319,7 +333,7 @@ export function GeometricConnections({
         }
       }
       
-      // For 4+ orbs, create diagonal connections
+      // ? For 4+ orbs, add diagonal connections
       if (orbs.length >= 4) {
         for (let i = 0; i < orbs.length; i++) {
           const diagonalIndex = (i + 2) % orbs.length;
@@ -334,7 +348,6 @@ export function GeometricConnections({
     return lines;
   }, [orbs]);
   
-  // Use a simpler line implementation
   return (
     <group>
       {connections.map((connection, index) => (
@@ -350,7 +363,12 @@ export function GeometricConnections({
   );
 }
 
-// A simpler line implementation using basic Three.js elements
+// * Line Component
+// ? Renders a single glowing line between two points
+// @param start - Starting position of the line
+// @param end - Ending position of the line
+// @param color - Color of the line
+// @param opacity - Base opacity of the line
 function LineComponent({ 
   start, 
   end, 
@@ -364,27 +382,27 @@ function LineComponent({
 }) {
   const ref = useRef<THREE.Mesh>(null);
   
+  // * Create curved line geometry
+  // ? Uses a quadratic curve for more aesthetic appeal
   const geometry = useMemo(() => {
-    // Create a curved line between points for more aesthetic appeal
     const curve = new THREE.QuadraticBezierCurve3(
       start,
       new THREE.Vector3(
         (start.x + end.x) / 2,
-        (start.y + end.y) / 2 + 0.5, // Add a slight curve upward
+        (start.y + end.y) / 2 + 0.5, // ? Add slight upward curve
         (start.z + end.z) / 2
       ),
       end
     );
     
-    // Create a tube geometry along the curve for a more visible line
     return new THREE.TubeGeometry(curve, 10, 0.02, 8, false);
   }, [start, end]);
   
-  // Create pulsing animation
+  // * Pulsing Animation
+  // ? Creates a gentle pulsing effect for the line
   useFrame(({ clock }) => {
     if (ref.current && ref.current.material) {
       const material = ref.current.material as THREE.MeshBasicMaterial;
-      // Gentle pulsing based on sine wave
       const pulse = Math.sin(clock.getElapsedTime() * 1.5) * 0.3 + 0.7;
       material.opacity = opacity * pulse;
     }
