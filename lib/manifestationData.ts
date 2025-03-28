@@ -1,0 +1,663 @@
+// * Manifestation Data Types and Constants
+// ? This module defines the core data structures and types for the manifestation system
+// ! Critical for type safety and data management throughout the application
+
+import * as THREE from "three";
+
+// * Operation Settings Types
+// ? Defines how operations behave in the manifestation
+export type OperationFocus = "balanced" | "intense" | "subtle" | "pulsing";
+
+export interface OperationSettings {
+  isRunning: boolean;
+  frequency: number; // ? Milliseconds between operations
+  focus: OperationFocus;
+  activeOrbId: number | null;
+}
+
+function createFullMoonAbundance(): Manifestation {
+  return {
+    id: "3",
+    name: "Full Moon Abundance",
+    rootLevel: {
+      id: "root",
+      name: "Lunar Level",
+      orbs: [],
+      operationSettings: {
+        isRunning: true,
+        frequency: 1000,
+        focus: "pulsing",
+        activeOrbId: null,
+      },
+    },
+    levels: {
+      root: {
+        id: "root",
+        name: "Lunar Level",
+        orbs: [],
+        operationSettings: {
+          isRunning: true,
+          frequency: 1000,
+          focus: "pulsing",
+          activeOrbId: null,
+        },
+      },
+    },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+}
+
+function createHeartChakraExpansion(): Manifestation {
+  return {
+    id: "4",
+    name: "Heart Chakra Expansion",
+    rootLevel: {
+      id: "root",
+      name: "Energy Level",
+      orbs: [],
+      operationSettings: {
+        isRunning: true,
+        frequency: 1200,
+        focus: "balanced",
+        activeOrbId: null,
+      },
+    },
+    levels: {
+      root: {
+        id: "root",
+        name: "Energy Level",
+        orbs: [],
+        operationSettings: {
+          isRunning: true,
+          frequency: 1200,
+          focus: "balanced",
+          activeOrbId: null,
+        },
+      },
+    },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+}
+
+function createCareerAscensionProtocol(): Manifestation {
+  return {
+    id: "5",
+    name: "Career Ascension Protocol",
+    rootLevel: {
+      id: "root",
+      name: "Work Level",
+      orbs: [],
+      operationSettings: {
+        isRunning: true,
+        frequency: 800,
+        focus: "intense",
+        activeOrbId: null,
+      },
+    },
+    levels: {
+      root: {
+        id: "root",
+        name: "Work Level",
+        orbs: [],
+        operationSettings: {
+          isRunning: true,
+          frequency: 800,
+          focus: "intense",
+          activeOrbId: null,
+        },
+      },
+    },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+}
+
+// * Orb Structure
+// ? Defines the properties of an individual orb
+export interface Orb {
+  id: number;
+  position: THREE.Vector3;
+  name: string;
+  description: string;
+  childLevelId?: string; // ? ID of the nested level if this orb contains one
+  randomNumber?: number; // added randomNumber property
+  sigil?: string; // added sigil property
+}
+
+// * Level Structure
+// ? Defines a level in the manifestation hierarchy
+export interface OrbLevel {
+  id: string;
+  name: string;
+  orbs: Orb[];
+  operationSettings: OperationSettings;
+}
+
+// * Complete Manifestation Structure
+// ? Defines the full manifestation object including all levels
+export interface Manifestation {
+  id: string;
+  name: string;
+  rootLevel: OrbLevel;
+  levels: { [key: string]: OrbLevel }; // ? Map of all levels by ID
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// * User Profile
+// ? Defines user data structure
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  manifestations: string[]; // ? IDs of user's manifestations
+}
+
+// * Configuration Constants
+// ? Defines various constants used throughout the application
+
+// * Scaling factor for orb positions
+// ! Important for visual spacing - increased for better orb separation
+export const scaleFactor = 3.5; // ? Changed from 2 to 3.5 for wider spacing
+
+// * Sample Sigil Data
+// ? Placeholder data for development and testing
+export const sampleSigils = [
+  "/sigils/sigil1.svg",
+  "/sigils/sigil2.svg",
+  "/sigils/sigil3.svg",
+  "/sigils/sigil4.svg",
+  "/sigils/sigil5.svg",
+];
+
+// * Sample Manifestation Data
+// ? Example manifestation for development and testing
+export const sampleManifestation: Manifestation = {
+  id: "sample1",
+  name: "Sample Manifestation",
+  rootLevel: {
+    id: "root",
+    name: "Root Level",
+    orbs: [
+      {
+        id: 1,
+        position: new THREE.Vector3(-2 * scaleFactor, 0, -2 * scaleFactor),
+        name: "Health & Wellness",
+        description: "Focus on physical and mental well-being",
+      },
+      {
+        id: 2,
+        position: new THREE.Vector3(2 * scaleFactor, 0, -2 * scaleFactor),
+        name: "Career Growth",
+        description: "Professional development and success",
+      },
+      {
+        id: 3,
+        position: new THREE.Vector3(2 * scaleFactor, 0, 2 * scaleFactor),
+        name: "Relationships",
+        description: "Nurturing connections and bonds",
+      },
+      {
+        id: 4,
+        position: new THREE.Vector3(-2 * scaleFactor, 0, 2 * scaleFactor),
+        name: "Personal Growth",
+        description: "Self-improvement and spiritual development",
+      },
+    ],
+    operationSettings: {
+      isRunning: false,
+      frequency: 1000,
+      focus: "balanced",
+      activeOrbId: null,
+    },
+  },
+  levels: {}, // ? Additional levels will be added as users create them
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+
+// * Prepopulated Manifestations
+// ? Collection of sample manifestations for development and testing
+export const prepopulatedManifestations: Record<string, Manifestation> = {
+  "1": createLifeAspectsManifestation(),
+  "2": createStarManifestation(),
+  "3": createFullMoonAbundance(),
+  "4": createHeartChakraExpansion(),
+  "5": createCareerAscensionProtocol(),
+};
+
+// * Helper Functions
+// ? Utility functions for manifestation operations
+
+// * Create Empty Manifestation
+// ? Generates a new empty manifestation structure
+export function createEmptyManifestation(
+  name: string = "New Manifestation",
+): Manifestation {
+  const rootLevel: OrbLevel = {
+    id: "root",
+    name: "Root Level",
+    orbs: [],
+    operationSettings: {
+      isRunning: false,
+      frequency: 1000, // ? Default to 1 second intervals
+      focus: "balanced",
+      activeOrbId: null,
+    },
+  };
+
+  return {
+    id: `manifest_${Date.now()}`, // ? Generate unique ID based on timestamp
+    name,
+    rootLevel,
+    levels: {
+      root: rootLevel,
+    },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+}
+
+// * Default Operation Settings
+// ? Provides default values for new operation settings
+export const defaultOperationSettings: OperationSettings = {
+  isRunning: false,
+  frequency: 1000, // ? Default to 1 second intervals
+  focus: "balanced",
+  activeOrbId: null,
+};
+
+/**
+ * Create the "Life Aspects" manifestation with nested levels
+ */
+function createLifeAspectsManifestation(): Manifestation {
+  // Create the Work level
+  const workLevel: OrbLevel = {
+    id: "work",
+    name: "Work",
+    orbs: [
+      {
+        id: 0,
+        position: new THREE.Vector3(0, 1 * scaleFactor, 0),
+        name: "Projects",
+        description: "Current and future work projects",
+      },
+      {
+        id: 1,
+        position: new THREE.Vector3(
+          ((2 * Math.sqrt(2)) / 3) * scaleFactor,
+          (-1 / 3) * scaleFactor,
+          0,
+        ),
+        name: "Boss",
+        description: "Relationship with management",
+      },
+      {
+        id: 2,
+        position: new THREE.Vector3(
+          (-Math.sqrt(2) / 3) * scaleFactor,
+          (-1 / 3) * scaleFactor,
+          Math.sqrt(2 / 3) * scaleFactor,
+        ),
+        name: "Growth",
+        description: "Personal and professional development",
+      },
+      {
+        id: 3,
+        position: new THREE.Vector3(
+          (-Math.sqrt(2) / 3) * scaleFactor,
+          (-1 / 3) * scaleFactor,
+          -Math.sqrt(2 / 3) * scaleFactor,
+        ),
+        name: "Promotion",
+        description: "Career advancement opportunities",
+      },
+    ],
+    operationSettings: {
+      isRunning: false,
+      frequency: 1000,
+      focus: "balanced",
+      activeOrbId: null,
+    },
+  };
+
+  // Create the Finance level
+  const financeLevel: OrbLevel = {
+    id: "finance",
+    name: "Finance",
+    orbs: [
+      {
+        id: 0,
+        position: new THREE.Vector3(0, 1 * scaleFactor, 0),
+        name: "Savings",
+        description: "Building financial security",
+      },
+      {
+        id: 1,
+        position: new THREE.Vector3(
+          ((2 * Math.sqrt(2)) / 3) * scaleFactor,
+          (-1 / 3) * scaleFactor,
+          0,
+        ),
+        name: "Investments",
+        description: "Growing your wealth",
+      },
+      {
+        id: 2,
+        position: new THREE.Vector3(
+          (-Math.sqrt(2) / 3) * scaleFactor,
+          (-1 / 3) * scaleFactor,
+          Math.sqrt(2 / 3) * scaleFactor,
+        ),
+        name: "Budget",
+        description: "Managing daily finances",
+      },
+    ],
+    operationSettings: {
+      isRunning: false,
+      frequency: 1200,
+      focus: "subtle",
+      activeOrbId: null,
+    },
+  };
+
+  // Create the Family level
+  const familyLevel: OrbLevel = {
+    id: "family",
+    name: "Family",
+    orbs: [
+      {
+        id: 0,
+        position: new THREE.Vector3(0, 1 * scaleFactor, 0),
+        name: "Parents",
+        description: "Connection with parents",
+      },
+      {
+        id: 1,
+        position: new THREE.Vector3(
+          ((2 * Math.sqrt(2)) / 3) * scaleFactor,
+          (-1 / 3) * scaleFactor,
+          0,
+        ),
+        name: "Siblings",
+        description: "Relations with brothers and sisters",
+      },
+      {
+        id: 2,
+        position: new THREE.Vector3(
+          (-Math.sqrt(2) / 3) * scaleFactor,
+          (-1 / 3) * scaleFactor,
+          Math.sqrt(2 / 3) * scaleFactor,
+        ),
+        name: "Children",
+        description: "Nurturing the next generation",
+      },
+    ],
+    operationSettings: {
+      isRunning: false,
+      frequency: 800,
+      focus: "intense",
+      activeOrbId: null,
+    },
+  };
+
+  // Create the Love level
+  const loveLevel: OrbLevel = {
+    id: "love",
+    name: "Love",
+    orbs: [
+      {
+        id: 0,
+        position: new THREE.Vector3(0, 1 * scaleFactor, 0),
+        name: "Dating",
+        description: "Meeting new people",
+      },
+      {
+        id: 1,
+        position: new THREE.Vector3(
+          ((2 * Math.sqrt(2)) / 3) * scaleFactor,
+          (-1 / 3) * scaleFactor,
+          0,
+        ),
+        name: "Partnership",
+        description: "Long-term commitment",
+      },
+    ],
+    operationSettings: {
+      isRunning: false,
+      frequency: 900,
+      focus: "pulsing",
+      activeOrbId: null,
+    },
+  };
+
+  // Create the root level with references to child levels
+  const rootLevel: OrbLevel = {
+    id: "root",
+    name: "Life Aspects",
+    orbs: [
+      {
+        id: 0,
+        position: new THREE.Vector3(0, 1 * scaleFactor, 0),
+        name: "Work",
+        description: "Your professional life and career aspirations",
+        childLevelId: "work",
+      },
+      {
+        id: 1,
+        position: new THREE.Vector3(
+          ((2 * Math.sqrt(2)) / 3) * scaleFactor,
+          (-1 / 3) * scaleFactor,
+          0,
+        ),
+        name: "Finance",
+        description: "Your financial well-being and goals",
+        childLevelId: "finance",
+      },
+      {
+        id: 2,
+        position: new THREE.Vector3(
+          (-Math.sqrt(2) / 3) * scaleFactor,
+          (-1 / 3) * scaleFactor,
+          Math.sqrt(2 / 3) * scaleFactor,
+        ),
+        name: "Family",
+        description: "Your relationships with family members",
+        childLevelId: "family",
+      },
+      {
+        id: 3,
+        position: new THREE.Vector3(
+          (-Math.sqrt(2) / 3) * scaleFactor,
+          (-1 / 3) * scaleFactor,
+          -Math.sqrt(2 / 3) * scaleFactor,
+        ),
+        name: "Love",
+        description: "Your romantic relationships and connections",
+        childLevelId: "love",
+      },
+    ],
+    operationSettings: {
+      isRunning: false,
+      frequency: 1000,
+      focus: "balanced",
+      activeOrbId: null,
+    },
+  };
+
+  // Create a nested level within Projects for more depth
+  const projectsLevel: OrbLevel = {
+    id: "projects",
+    name: "Projects",
+    orbs: [
+      {
+        id: 0,
+        position: new THREE.Vector3(0, 1 * scaleFactor, 0),
+        name: "App Development",
+        description: "Building mobile and web applications",
+      },
+      {
+        id: 1,
+        position: new THREE.Vector3(
+          ((2 * Math.sqrt(2)) / 3) * scaleFactor,
+          (-1 / 3) * scaleFactor,
+          0,
+        ),
+        name: "Design",
+        description: "Visual and UX design tasks",
+      },
+      {
+        id: 2,
+        position: new THREE.Vector3(
+          (-Math.sqrt(2) / 3) * scaleFactor,
+          (-1 / 3) * scaleFactor,
+          Math.sqrt(2 / 3) * scaleFactor,
+        ),
+        name: "Documentation",
+        description: "Creating technical and user documentation",
+      },
+    ],
+    operationSettings: {
+      isRunning: false,
+      frequency: 700,
+      focus: "intense",
+      activeOrbId: null,
+    },
+  };
+
+  // Link Projects orb to projects level
+  workLevel.orbs[0].childLevelId = "projects";
+
+  return {
+    id: "1",
+    name: "Life Aspects",
+    rootLevel,
+    levels: {
+      root: rootLevel,
+      work: workLevel,
+      finance: financeLevel,
+      family: familyLevel,
+      love: loveLevel,
+      projects: projectsLevel,
+    },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+}
+
+/**
+ * Create the "Star Manifestation" with minimal nesting
+ */
+function createStarManifestation(): Manifestation {
+  const rootLevel: OrbLevel = {
+    id: "root",
+    name: "Star Manifestation",
+    orbs: [
+      {
+        id: 0,
+        position: new THREE.Vector3(0, 1 * scaleFactor, 0),
+        name: "North",
+        description: "Direction of wisdom",
+      },
+      {
+        id: 1,
+        position: new THREE.Vector3(
+          ((2 * Math.sqrt(2)) / 3) * scaleFactor,
+          (-1 / 3) * scaleFactor,
+          0,
+        ),
+        name: "East",
+        description: "Direction of new beginnings",
+      },
+      {
+        id: 2,
+        position: new THREE.Vector3(
+          (-Math.sqrt(2) / 3) * scaleFactor,
+          (-1 / 3) * scaleFactor,
+          Math.sqrt(2 / 3) * scaleFactor,
+        ),
+        name: "South",
+        description: "Direction of passion",
+      },
+      {
+        id: 3,
+        position: new THREE.Vector3(
+          (-Math.sqrt(2) / 3) * scaleFactor,
+          (-1 / 3) * scaleFactor,
+          -Math.sqrt(2 / 3) * scaleFactor,
+        ),
+        name: "West",
+        description: "Direction of introspection",
+      },
+      {
+        id: 4,
+        position: new THREE.Vector3(0, 0, 0),
+        name: "Center",
+        description: "Core of your being",
+      },
+    ],
+    operationSettings: {
+      isRunning: false,
+      frequency: 1000,
+      focus: "balanced",
+      activeOrbId: null,
+    },
+  };
+
+  // Create North level
+  const northLevel: OrbLevel = {
+    id: "north",
+    name: "North",
+    orbs: [
+      {
+        id: 0,
+        position: new THREE.Vector3(0, 1 * scaleFactor, 0),
+        name: "Meditation",
+        description: "Practices for mindfulness",
+      },
+      {
+        id: 1,
+        position: new THREE.Vector3(
+          ((2 * Math.sqrt(2)) / 3) * scaleFactor,
+          (-1 / 3) * scaleFactor,
+          0,
+        ),
+        name: "Study",
+        description: "Learning and personal education",
+      },
+      {
+        id: 2,
+        position: new THREE.Vector3(
+          (-Math.sqrt(2) / 3) * scaleFactor,
+          (-1 / 3) * scaleFactor,
+          Math.sqrt(2 / 3) * scaleFactor,
+        ),
+        name: "Guidance",
+        description: "Mentorship and advice",
+      },
+    ],
+    operationSettings: {
+      isRunning: false,
+      frequency: 1100,
+      focus: "subtle",
+      activeOrbId: null,
+    },
+  };
+
+  // Link North orb to north level
+  rootLevel.orbs[0].childLevelId = "north";
+
+  return {
+    id: "2",
+    name: "Star Manifestation",
+    rootLevel,
+    levels: {
+      root: rootLevel,
+      north: northLevel,
+    },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+}

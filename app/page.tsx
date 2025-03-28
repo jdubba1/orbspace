@@ -1,282 +1,170 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { FilePlus, Settings } from "lucide-react";
-import Draggable from "react-draggable";
-import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import { prepopulatedManifestations } from "@/lib/manifestationData";
+import { Clock, Plus, User, Settings } from "lucide-react";
 
-interface Card {
-  id: number;
-  x: number;
-  y: number;
-}
-
-export default function Home() {
-  const [wheel1Position, setWheel1Position] = useState<number>(0);
-  const [wheel2Position, setWheel2Position] = useState<number>(0);
-  const [wheel3Position, setWheel3Position] = useState<number>(0);
-  const [cards, setCards] = useState<Card[]>([
-    { id: 0, x: -150, y: -120 },
-    { id: 1, x: 50, y: -120 },
-    { id: 2, x: 50, y: 100 },
-    { id: 3, x: -150, y: 100 },
-  ]);
-  const [activeCardId, setActiveCardId] = useState<number>(0);
-  const [showTerminal, setShowTerminal] = useState<boolean>(false);
-
-  const canvasBounds = { width: 1000, height: 600 }; // Define canvas dimensions
-  const cardSize = 80; // Card width/height (assuming square)
-  const numberOfSegments = cards.length;
-
-  // Ref to store the latest state
-  const stateRef = useRef({
-    wheel1Position,
-    wheel2Position,
-    wheel3Position,
-    numberOfSegments,
-  });
-
-  useEffect(() => {
-    // Update the ref whenever state changes
-    stateRef.current = {
-      wheel1Position,
-      wheel2Position,
-      wheel3Position,
-      numberOfSegments,
-    };
-  }, [wheel1Position, wheel2Position, wheel3Position, numberOfSegments]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const {
-        wheel1Position,
-        wheel2Position,
-        wheel3Position,
-        numberOfSegments,
-      } = stateRef.current;
-
-      const segmentSize = 1080 / numberOfSegments;
-      const totalWheelPosition =
-        wheel1Position + wheel2Position + wheel3Position;
-      const activeSegment =
-        Math.floor(totalWheelPosition / segmentSize) % numberOfSegments;
-
-      console.log("Total Position:", totalWheelPosition);
-      console.log("Segment Size:", segmentSize);
-      console.log("Active Segment:", activeSegment);
-
-      setActiveCardId(activeSegment);
-    }, 500);
-
-    return () => clearInterval(timer);
-  }, []); // No dependencies needed because stateRef is used
-
-  useEffect(() => {
-    const wheel1Interval = setInterval(() => {
-      setWheel1Position((prev) => (prev + 3) % 360);
-    }, 10);
-
-    const wheel2Interval = setInterval(() => {
-      setWheel2Position((prev) => (prev + 2) % 360);
-    }, 20);
-
-    const wheel3Interval = setInterval(() => {
-      setWheel3Position((prev) => (prev + 1) % 360);
-    }, 30);
-
-    return () => {
-      clearInterval(wheel1Interval);
-      clearInterval(wheel2Interval);
-      clearInterval(wheel3Interval);
-    };
-  }, []);
-
-  const addCard = () => {
-    const randomX = Math.random() * canvasBounds.width - canvasBounds.width / 2;
-    const randomY =
-      Math.random() * canvasBounds.height - canvasBounds.height / 2;
-
-    setCards((prevCards) => [
-      ...prevCards,
-      {
-        id: prevCards.length,
-        x: Math.max(
-          -canvasBounds.width / 2 + cardSize / 2,
-          Math.min(canvasBounds.width / 2 - cardSize / 2, randomX),
-        ),
-        y: Math.max(
-          -canvasBounds.height / 2 + cardSize / 2,
-          Math.min(canvasBounds.height / 2 - cardSize / 2, randomY),
-        ),
-      },
-    ]);
-  };
-
-  const onDrag = (id: number, newX: number, newY: number) => {
-    setCards((prevCards) =>
-      prevCards.map((card) =>
-        card.id === id ? { ...card, x: newX, y: newY } : card,
-      ),
-    );
-  };
-
-  // const [backgroundImage, setBackgroundImage] = useState<string | null>(
-  //   null
-  // ); // Default background
-const backgroundImage = null
-  // const handleBackgroundChange = (value: string) => {
-  //   setBackgroundImage(value === "none" ? null : value);
-  // };
+export default function MenuScreen() {
+  const manifestations = Object.values(prepopulatedManifestations);
 
   return (
-    <div
-      className="relative w-full h-screen"
-      style={{
-        backgroundImage: backgroundImage
-          ? `url(/${backgroundImage})`
-          : undefined,
-        backgroundColor: backgroundImage ? undefined : "rgb(31, 41, 55)", // Tailwind slate-800
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
-      <div className="relative flex justify-center items-center bg-transparent w-full h-full overflow-hidden">
-        {cards.map(({ id, x, y }) => (
-          <Draggable
-            key={id}
-            position={{ x, y }} // Controlled position
-            onStop={(e, data) => onDrag(id, data.x, data.y)} // Update card position on drag stop
-          >
-            <div>
-              <Card
-                className={`absolute w-40 rounded-sm text-white font-bold cursor-pointer ${
-                  activeCardId === id ? "bg-orange-400" : "bg-zinc-800"
-                }`}
-              >
-                <CardHeader className="py-2 border-b border-white">
-                  <CardTitle className="text-center flex flex-row justify-between items-center font-mono text-xs">
-                    Position {id + 1}
-                    <Settings size={16} />
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-4">
-                  <Button className="w-full py-12 border-dashed border-2 border-white bg-transparent flex flex-col hover:bg-inherit">
-                    <FilePlus size={32} />
-                    <p>add image</p>
-                  </Button>
-                </CardContent>
-                <CardFooter className="border-t pb-0 py-px text-xs font-normal">
-                  <p className="w-full text-center font-mono">00000000000</p>
-                </CardFooter>
-              </Card>
-            </div>
-          </Draggable>
-        ))}
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
+      {/* Header */}
+      <header className="p-6 border-b border-gray-800 flex justify-between items-center">
+        <h1 className="text-2xl font-bold font-mono italic">orb.space</h1>
+        <div className="flex items-center space-x-4">
+          <button className="p-2 rounded-full bg-gray-800 hover:bg-gray-700">
+            <Settings size={20} />
+          </button>
+          <button className="p-2 rounded-full bg-gray-800 hover:bg-gray-700">
+            <User size={20} />
+          </button>
+        </div>
+      </header>
 
-      {/* Button to toggle terminal */}
-      <div className="absolute top-4 left-10">
-        <button
-          className="px-4 py-2 text-white rounded font-mono bg-black"
-          onClick={() => setShowTerminal(true)}
-        >
-          open terminal &rarr;
-        </button>
-      </div>
-
-      {/* Terminal View Overlay */}
-      {showTerminal && (
-        <div className="absolute top-20 left-10 w-[300px] bg-black bg-opacity-90 text-white p-4 rounded-lg shadow-lg overflow-hidden">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold font-mono">
-              live server status:
-            </h2>
-            <button
-              className="px-2 py-1 bg-transparent font-bold rounded text-lg hover:text-red-500"
-              onClick={() => setShowTerminal(false)}
+      {/* Main Content */}
+      <main className="max-w-6xl mx-auto p-6 min-h-[80vh] space-y-8">
+        <div className="space-y-4 py-8">
+          <h1 className="text-center text-4xl font-bold">
+            {" "}
+            Summon the future.{" "}
+          </h1>
+          <div className="w-full flex justify-center">
+            <Link
+              href="/manifestations/new"
+              className="px-4 py-2 bg-indigo-600 rounded-md flex items-center space-x-2 hover:bg-indigo-700 transition duration-200"
             >
-              X
-            </button>
+              <Plus size={16} />
+              <span className="font-bold text-lg">New Manifestation</span>
+            </Link>
           </div>
-          <div className="overflow-y-auto bg-gray-800 p-2 mb-2 rounded-sm text-green-400">
-            <p className="font-mono text-sm">position_1: {wheel1Position}°</p>
-            <p className="font-mono text-sm">position_2: {wheel2Position}°</p>
-            <p className="font-mono text-sm">position_3: {wheel3Position}°</p>
-            <p className="font-mono text-sm px-px">
-              active_card: {activeCardId}
+        </div>
+
+        {/* Active Manifestation Grid */}
+        <div>
+          <h2 className="text-xl font-semibold mb-4 pl-2">Active Manifestations</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {manifestations
+              .filter((manifestation) =>
+                Object.values(manifestation.levels).some(
+                  (level) => level.operationSettings.isRunning,
+                ),
+              )
+              .map((manifestation) => {
+                const delay = Math.random() * 1.5;
+                return (
+                  <Link
+                    href={`/manifestations/${manifestation.id}`}
+                    key={manifestation.id}
+                    className="bg-gray-900 border border-indigo-700 rounded-lg p-5 hover:border-indigo-500 transition duration-200 relative overflow-hidden"
+                  >
+                    {/* <div
+                      className="absolute top-2 right-2 w-3 h-3 bg-emerald-400 rounded-full animate-blink"
+                      style={{ animationDelay: `${delay}s` }}
+                    /> */}
+
+                    <div className="mb-2 flex justify-between items-start">
+                      <h3 className="text-lg font-semibold">
+                        {manifestation.name}
+                      </h3>
+                      <span className="text-xs bg-indigo-800 px-2 py-1 rounded-full">
+                      {Object.keys(manifestation.levels).length} {Object.keys(manifestation.levels).length === 1 ? "level" : "levels"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between mt-auto">
+                      <div className="flex items-center space-x-2 text-sm text-gray-300">
+                        <Clock size={14} />
+                        <span>
+                          {new Date(manifestation.updatedAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="flex items-center text-emerald-400 text-sm gap-1">
+                        <div
+                          className="size-[10px] bg-emerald-400 rounded-full animate-blink mt-[2px]"
+                          style={{ animationDelay: `${delay + 0.5}s` }}
+                        />
+                        <span className="ml-1 font-mono">active</span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+          </div>
+        </div>
+
+
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold pl-2">Inactive Manifestations</h2>
+          </div>
+          {/* Saved Manifestation Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {manifestations
+              .filter(
+                (manifestation) =>
+                  !Object.values(manifestation.levels).some(
+                    (level) => level.operationSettings.isRunning,
+                  ),
+              )
+              .map((manifestation) => (
+                <Link
+                  href={`/manifestations/${manifestation.id}`}
+                  key={manifestation.id}
+                  className="bg-gray-800 bg-opacity-50 rounded-lg p-5 hover:bg-opacity-70 transition duration-200 border border-gray-700"
+                >
+                  <div className="mb-2 flex justify-between items-start">
+                    <h3 className="text-lg font-semibold">
+                      {manifestation.name}
+                    </h3>
+                    <span className="text-xs bg-indigo-800 px-2 py-1 rounded-full">
+                    {Object.keys(manifestation.levels).length} {Object.keys(manifestation.levels).length === 1 ? "level" : "levels"}
+
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between mt-auto">
+                    <div className="flex items-center space-x-2 text-sm text-gray-300">
+                      <Clock size={14} />
+                      <span>
+                        {new Date(manifestation.updatedAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="text-gray-500 text-sm">Inactive</div>
+                  </div>
+                </Link>
+              ))}
+          </div>
+        </div>
+
+        {manifestations.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-400 mb-4">
+              You haven&apos;t created any manifestations yet.
             </p>
+            <Link
+              href="/manifestations/new"
+              className="px-4 py-2 bg-indigo-600 rounded-md inline-flex items-center space-x-2 hover:bg-indigo-700 transition duration-200"
+            >
+              <Plus size={16} />
+              <span>Create Your First Manifestation</span>
+            </Link>
           </div>
-        </div>
-      )}
+        )}
+      </main>
 
-      {/* Add Card Button */}
-      <div className="fixed bottom-0 left-0 w-full bg-gray-900 text-white py-4">
-        <div className="container mx-auto px-4">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-            <div className="flex gap-2">
-              <div className="flex flex-col gap-2">
-                <button
-                  className="px-6 py-1 bg-green-500 text-white rounded-full"
-                  onClick={() => alert("Another Action")}
-                >
-                  Load
-                </button>
-                <button
-                  className="px-6 py-1 bg-blue-500 text-white rounded-full"
-                  onClick={() => alert("One More Action")}
-                >
-                  Save
-                </button>
-              </div>
-              <div></div>
-              <div className="flex flex-col gap-2 justify-center">
-                <button
-                  className="px-6 py-1 bg-red-500 text-white rounded-full"
-                  onClick={() => window.location.reload()} // Trigger full page reload
-                >
-                  Reset
-                </button>
-              </div>
-              
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                className="px-4 py-2 bg-slate-50 rounded-sm text-black font-bold"
-                onClick={addCard}
-              >
-                + add position
-              </button>
-              <div>
-                {/*<Select onValueChange={handleBackgroundChange}>
-                  <SelectTrigger className="w-48 bg-gray-800 text-white h-10">
-                    <SelectValue placeholder="Select Background" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    <SelectItem value="bg-1.jpg">Background 1</SelectItem>
-                    <SelectItem value="bg-2.jpg">Background 2</SelectItem>
-                  </SelectContent>
-                </Select>*/}
-              </div> 
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Footer */}
+      <footer className="p-6 border-t border-gray-800 text-center text-gray-500 text-sm">
+        <p>orb.space - Manifest your intentions through cosmic alignment.</p>
+      </footer>
+      <style jsx global>{`
+        @keyframes blink {
+          0%, 50%, 100% { opacity: 1; }
+          25%, 75% { opacity: 0.3; }
+        }
+        .animate-blink {
+          animation: blink 1s infinite;
+        }
+      `}</style>
     </div>
   );
 }
