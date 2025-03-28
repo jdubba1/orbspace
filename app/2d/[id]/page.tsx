@@ -103,7 +103,7 @@ export default function MindMapPage({ params }: MindMapPageProps) {
   const prepopulated = id !== "new" ? prepopulatedMindMaps[id] : undefined;
 
   const [mindMapName, setMindMapName] = useState(
-    prepopulated ? prepopulated.name : "Untitled Mind Map"
+    prepopulated ? prepopulated.name : "Untitled Mind Map",
   );
   const defaultNodes: Node[] = [
     {
@@ -116,10 +116,10 @@ export default function MindMapPage({ params }: MindMapPageProps) {
   const defaultEdges: Edge[] = [];
 
   const [nodes, setNodes, onNodesChange] = useNodesState(
-    prepopulated ? prepopulated.nodes : defaultNodes
+    prepopulated ? prepopulated.nodes : defaultNodes,
   );
   const [edges, setEdges, onEdgesChange] = useEdgesState(
-    prepopulated ? prepopulated.edges : defaultEdges
+    prepopulated ? prepopulated.edges : defaultEdges,
   );
 
   // Function to update a node's label.
@@ -132,11 +132,11 @@ export default function MindMapPage({ params }: MindMapPageProps) {
                 ...node,
                 data: { ...node.data, label: value, onChange: updateNodeLabel },
               }
-            : node
-        )
+            : node,
+        ),
       );
     },
-    [setNodes]
+    [setNodes],
   );
 
   // Attach onChange callback to all nodes.
@@ -145,7 +145,7 @@ export default function MindMapPage({ params }: MindMapPageProps) {
       nds.map((node) => ({
         ...node,
         data: { ...node.data, onChange: updateNodeLabel },
-      }))
+      })),
     );
   }, [updateNodeLabel, setNodes]);
 
@@ -153,7 +153,7 @@ export default function MindMapPage({ params }: MindMapPageProps) {
   const onConnect: OnConnect = useCallback(
     (connection: Connection) =>
       setEdges((eds) => addEdge({ ...connection, animated: true }, eds)),
-    [setEdges]
+    [setEdges],
   );
 
   // Handler to add a new node at a random position.

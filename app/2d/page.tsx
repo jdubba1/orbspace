@@ -80,11 +80,11 @@ export default function MindMapPage() {
                 ...node,
                 data: { ...node.data, label: value, onChange: updateNodeLabel },
               }
-            : node
-        )
+            : node,
+        ),
       );
     },
-    [setNodes]
+    [setNodes],
   );
 
   // Ensure that all nodes have the onChange callback attached.
@@ -93,7 +93,7 @@ export default function MindMapPage() {
       nds.map((node) => ({
         ...node,
         data: { ...node.data, onChange: updateNodeLabel },
-      }))
+      })),
     );
   }, [updateNodeLabel, setNodes]);
 
@@ -101,7 +101,7 @@ export default function MindMapPage() {
   const onConnect: OnConnect = useCallback(
     (connection: Connection) =>
       setEdges((eds) => addEdge({ ...connection, animated: true }, eds)),
-    [setEdges]
+    [setEdges],
   );
 
   // Handler to add a new node at a random position.

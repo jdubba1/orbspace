@@ -15,7 +15,9 @@ interface BreadcrumbNavigationProps {
 
 // * Main BreadcrumbNavigation Component
 // ? Renders a chain of clickable breadcrumbs showing the current navigation path
-export function BreadcrumbNavigation({ breadcrumbs }: BreadcrumbNavigationProps) {
+export function BreadcrumbNavigation({
+  breadcrumbs,
+}: BreadcrumbNavigationProps) {
   return (
     // * Navigation Container
     // ? Fixed position with backdrop blur for better readability
@@ -26,16 +28,12 @@ export function BreadcrumbNavigation({ breadcrumbs }: BreadcrumbNavigationProps)
           {breadcrumbs.map((crumb, index) => (
             <div key={index} className="flex items-center">
               {/* Separator between breadcrumbs */}
-              {index > 0 && (
-                <span className="mx-2 text-white/40">→</span>
-              )}
-              
+              {index > 0 && <span className="mx-2 text-white/40">→</span>}
+
               {/* Breadcrumb Item */}
               {/* ? Last item is current location (non-clickable) */}
               {index === breadcrumbs.length - 1 ? (
-                <span className="text-white font-medium">
-                  {crumb.name}
-                </span>
+                <span className="text-white font-medium">{crumb.name}</span>
               ) : (
                 // * Clickable Navigation Link
                 // ? Includes hover effect for better UX
@@ -52,4 +50,4 @@ export function BreadcrumbNavigation({ breadcrumbs }: BreadcrumbNavigationProps)
       </div>
     </nav>
   );
-} 
+}

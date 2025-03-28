@@ -2,12 +2,12 @@
 // ? This module contains all the 3D components related to orb visualization and interaction
 // ! This is a critical file for the application's core functionality
 
-import { useEffect, useRef, useMemo } from 'react';
-import { useFrame, useThree } from '@react-three/fiber';
-import { Text } from '@react-three/drei';
-import * as THREE from 'three';
-import { gsap } from 'gsap';
-import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
+import { useEffect, useRef, useMemo } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
+import { Text } from "@react-three/drei";
+import * as THREE from "three";
+import { gsap } from "gsap";
+import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 
 // * Interface Definitions
 // ? These types define the shape of our component props
@@ -35,20 +35,20 @@ export function OrbComponent({
   isHovered,
   hasChildren,
   onClick,
-  onHover
+  onHover,
 }: OrbComponentProps) {
   // * Refs for animation
   const ref = useRef<THREE.Mesh>(null);
   const pointsRef = useRef<THREE.Points>(null);
   const textRef = useRef<THREE.Group>(null);
-  
+
   // ? Generate particle positions for the outer cloud effect
   // ! This is computationally expensive, so we memoize it
   const particlePositions = useMemo(() => {
     const positions = [];
     const innerOrbRadius = 0.4;
     const outerOrbRadius = 1;
-    for (let i = 0; i < 2000; i++) {
+    for (let i = 0; i < 1000; i++) {
       let radius;
       do {
         radius = Math.random() * outerOrbRadius;
@@ -71,14 +71,14 @@ export function OrbComponent({
       const scale = isActive ? 1.5 : isSelected ? 1.3 : isHovered ? 1.2 : 1;
       ref.current.scale.lerp(new THREE.Vector3(scale, scale, scale), 0.1);
     }
-    
+
     if (pointsRef.current) {
       pointsRef.current.rotation.y += 0.002;
-      
+
       // Pulse the points if active in operation or hovered
       if (pointsRef.current.material) {
         const material = pointsRef.current.material as THREE.PointsMaterial;
-        
+
         if (isActive) {
           material.size = 0.013 * (1 + 0.3 * Math.sin(Date.now() * 0.005));
         } else if (isHovered) {
@@ -88,7 +88,7 @@ export function OrbComponent({
         }
       }
     }
-    
+
     if (textRef.current) {
       // Make sure text always faces the camera
       (textRef.current as THREE.Group).lookAt(camera.position);
@@ -108,8 +108,8 @@ export function OrbComponent({
   }
 
   return (
-    <group 
-      position={orb.position.toArray()} 
+    <group
+      position={orb.position.toArray()}
       onClick={onClick}
       onPointerOver={() => onHover(true)}
       onPointerOut={() => onHover(false)}
@@ -125,7 +125,7 @@ export function OrbComponent({
         </bufferGeometry>
         <pointsMaterial
           color={orbColor}
-          size={0.013}
+          size={0.025}
           transparent
           opacity={isHovered ? 0.8 : 0.7}
         />
@@ -141,38 +141,31 @@ export function OrbComponent({
           emissiveIntensity={isHovered ? 1.2 : 0.9}
         />
       </mesh>
-      
+
       {/* Display orb name above the orb */}
       <group ref={textRef} position={[0, 0.6, 0]}>
         <Text
-          fontSize={0.15}
+          fontSize={0.18}
           color="white"
           anchorX="center"
           anchorY="middle"
-          fillOpacity={0.9}
-          outlineWidth={0.02}
+          fillOpacity={1.0}
+          outlineWidth={0.015}
           outlineColor={
-            hasChildren ? "#FFC857" : 
-            isActive ? "#FF9B54" : 
-            isHovered ? "#10b981" : "#000000"
+            hasChildren
+              ? "#9D174D"
+              : isActive
+                ? "#FF9B54"
+                : isHovered
+                  ? "#10b981"
+                  : "#000000"
           }
-          outlineOpacity={0.6}
+          letterSpacing={0.05}
+          outlineOpacity={0.8}
         >
           {orb.name || `Orb ${orb.id}`}
         </Text>
       </group>
-      
-      {/* Visual indicator for orbs with children */}
-      {hasChildren && (
-        <mesh position={[0, 0.3, 0]}>
-          <boxGeometry args={[0.1, 0.1, 0.1]} />
-          <meshStandardMaterial 
-            color="#FFC857" 
-            emissive="#FFC857"
-            emissiveIntensity={isHovered ? 1.2 : 1}
-          />
-        </mesh>
-      )}
     </group>
   );
 }
@@ -180,32 +173,35 @@ export function OrbComponent({
 /**
  * Component to handle smooth camera animations
  */
-export function CameraAnimator({ 
-  target, 
-  controls, 
+export function CameraAnimator({
+  target,
+  controls,
   onComplete,
-  setIsZooming
-}: { 
-  target: THREE.Vector3, 
-  controls: React.RefObject<OrbitControlsImpl>,
-  onComplete: () => void,
-  setIsZooming: (value: boolean) => void
+  setIsZooming,
+}: {
+  target: THREE.Vector3;
+  controls: React.RefObject<OrbitControlsImpl>;
+  onComplete: () => void;
+  setIsZooming: (value: boolean) => void;
 }) {
   const { camera } = useThree();
-  
+
   useEffect(() => {
     if (controls.current && target) {
       setIsZooming(true);
-      
+
       // Kill any existing animations to prevent conflict
       gsap.killTweensOf(camera.position);
       gsap.killTweensOf(controls.current.target);
-      
+
       // Calculate a position closer to the orb (better framing)
       // Position the camera 2.5 units away from the orb
-      const direction = new THREE.Vector3(0, 0, 1).normalize();  // Default camera direction
-      const targetPosition = new THREE.Vector3().addVectors(target, direction.multiplyScalar(2.5));
-      
+      const direction = new THREE.Vector3(0, 0, 1).normalize(); // Default camera direction
+      const targetPosition = new THREE.Vector3().addVectors(
+        target,
+        direction.multiplyScalar(2.5),
+      );
+
       // Animate camera position in a single, smooth motion
       gsap.to(camera.position, {
         x: targetPosition.x,
@@ -213,20 +209,43 @@ export function CameraAnimator({
         z: targetPosition.z,
         duration: 1,
         ease: "power2.inOut",
-        onComplete
+        onComplete,
       });
-      
+
       // Animate orbit controls target to center on the orb
       gsap.to(controls.current.target, {
         x: target.x,
         y: target.y,
         z: target.z,
         duration: 1,
-        ease: "power2.inOut"
+        ease: "power2.inOut",
       });
     }
   }, [target, controls, camera, onComplete, setIsZooming]);
-  
+
+  useEffect(() => {
+    if (controls.current) {
+      // Set the camera's center position to match the orbs' center
+      const orbsCenter = new THREE.Vector3(0, 0, 0); // Adjust this if your orbs have a different center
+      
+      // Set rotation limits (in radians)
+      controls.current.minAzimuthAngle = -Math.PI / 4; // Limit left rotation to 45 degrees
+      controls.current.maxAzimuthAngle = Math.PI / 4;  // Limit right rotation to 45 degrees
+      
+      // Set polar angle limits (vertical rotation)
+      controls.current.minPolarAngle = Math.PI / 4;    // Limit upward view (higher = less upward movement)
+      controls.current.maxPolarAngle = (3 * Math.PI) / 4; // Limit downward view (lower = more downward movement)
+      
+      // Set zoom limits
+      controls.current.minDistance = 2;  // Minimum zoom distance
+      controls.current.maxDistance = 20; // Maximum zoom distance
+      
+      // Force the orbit controls to update
+      controls.current.target.copy(orbsCenter);
+      controls.current.update();
+    }
+  }, [controls]);
+
   return null;
 }
 
@@ -298,10 +317,10 @@ export function BackgroundSphere() {
 // ? Creates the sacred geometry pattern by drawing lines between orbs
 // @param orbs - Array of orb objects with positions
 // @param isRootLevel - Boolean indicating if this is the root level
-export function GeometricConnections({ 
+export function GeometricConnections({
   orbs,
-  isRootLevel 
-}: { 
+  isRootLevel,
+}: {
   orbs: { id: number; position: THREE.Vector3 }[];
   isRootLevel: boolean;
 }) {
@@ -309,45 +328,45 @@ export function GeometricConnections({
   // ? Creates a unique set of connections between orbs based on sacred geometry principles
   const connections = useMemo(() => {
     if (!orbs || orbs.length < 2) return [];
-    
+
     // TODO: Consider adding more complex sacred geometry patterns for larger numbers of orbs
-    
+
     // ? Basic circular connections
     const lines: [THREE.Vector3, THREE.Vector3][] = [];
-    
+
     // * Create primary connections (circular pattern)
     for (let i = 0; i < orbs.length; i++) {
       const nextIndex = (i + 1) % orbs.length;
       lines.push([orbs[i].position.clone(), orbs[nextIndex].position.clone()]);
     }
-    
+
     // * Create additional sacred geometry patterns
     if (orbs.length > 3) {
       // ? For even numbers, connect opposite orbs
       if (orbs.length % 2 === 0) {
         for (let i = 0; i < orbs.length / 2; i++) {
           lines.push([
-            orbs[i].position.clone(), 
-            orbs[i + orbs.length / 2].position.clone()
+            orbs[i].position.clone(),
+            orbs[i + orbs.length / 2].position.clone(),
           ]);
         }
       }
-      
+
       // ? For 4+ orbs, add diagonal connections
       if (orbs.length >= 4) {
         for (let i = 0; i < orbs.length; i++) {
           const diagonalIndex = (i + 2) % orbs.length;
           lines.push([
-            orbs[i].position.clone(), 
-            orbs[diagonalIndex].position.clone()
+            orbs[i].position.clone(),
+            orbs[diagonalIndex].position.clone(),
           ]);
         }
       }
     }
-    
+
     return lines;
   }, [orbs]);
-  
+
   return (
     <group>
       {connections.map((connection, index) => (
@@ -369,19 +388,19 @@ export function GeometricConnections({
 // @param end - Ending position of the line
 // @param color - Color of the line
 // @param opacity - Base opacity of the line
-function LineComponent({ 
-  start, 
-  end, 
-  color, 
-  opacity 
-}: { 
-  start: THREE.Vector3; 
-  end: THREE.Vector3; 
+function LineComponent({
+  start,
+  end,
+  color,
+  opacity,
+}: {
+  start: THREE.Vector3;
+  end: THREE.Vector3;
   color: string;
   opacity: number;
 }) {
   const ref = useRef<THREE.Mesh>(null);
-  
+
   // * Create curved line geometry
   // ? Uses a quadratic curve for more aesthetic appeal
   const geometry = useMemo(() => {
@@ -390,14 +409,14 @@ function LineComponent({
       new THREE.Vector3(
         (start.x + end.x) / 2,
         (start.y + end.y) / 2 + 0.5, // ? Add slight upward curve
-        (start.z + end.z) / 2
+        (start.z + end.z) / 2,
       ),
-      end
+      end,
     );
-    
+
     return new THREE.TubeGeometry(curve, 10, 0.02, 8, false);
   }, [start, end]);
-  
+
   // * Pulsing Animation
   // ? Creates a gentle pulsing effect for the line
   useFrame(({ clock }) => {
@@ -407,15 +426,15 @@ function LineComponent({
       material.opacity = opacity * pulse;
     }
   });
-  
+
   return (
     <mesh ref={ref} geometry={geometry}>
-      <meshBasicMaterial 
-        color={color} 
-        transparent={true} 
-        opacity={opacity} 
+      <meshBasicMaterial
+        color={color}
+        transparent={true}
+        opacity={opacity}
         fog={true}
       />
     </mesh>
   );
-} 
+}

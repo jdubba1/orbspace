@@ -1,12 +1,12 @@
 "use client";
 
-import Link from 'next/link';
-import { prepopulatedManifestations } from '@/lib/manifestationData';
-import { Clock, Plus, Sparkles, User, Settings } from 'lucide-react';
+import Link from "next/link";
+import { prepopulatedManifestations } from "@/lib/manifestationData";
+import { Clock, Plus, User, Settings } from "lucide-react";
 
 export default function MenuScreen() {
   const manifestations = Object.values(prepopulatedManifestations);
-  
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
       {/* Header */}
@@ -21,66 +21,127 @@ export default function MenuScreen() {
           </button>
         </div>
       </header>
-      
+
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto p-6">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-xl font-semibold">Your Manifestations</h2>
-          <Link 
-            href="/manifestations/new"
-            className="px-4 py-2 bg-indigo-600 rounded-md flex items-center space-x-2 hover:bg-indigo-700 transition duration-200"
-          >
-            <Plus size={16} />
-            <span>New Manifestation</span>
-          </Link>
-        </div>
-        
-        {/* Manifestation Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {manifestations.map(manifestation => (
-            <Link 
-              href={`/manifestations/${manifestation.id}`} 
-              key={manifestation.id}
-              className="bg-gray-800 bg-opacity-50 rounded-lg p-5 hover:bg-opacity-70 transition duration-200 border border-gray-700"
+      <main className="max-w-6xl mx-auto p-6 min-h-[80vh] space-y-8">
+        <div className="space-y-4 py-8">
+          <h1 className="text-center text-4xl font-bold">
+            {" "}
+            Summon the future.{" "}
+          </h1>
+          <div className="w-full flex justify-center">
+            <Link
+              href="/manifestations/new"
+              className="px-4 py-2 bg-indigo-600 rounded-md flex items-center space-x-2 hover:bg-indigo-700 transition duration-200"
             >
-              <div className="mb-2 flex justify-between items-start">
-                <h3 className="text-lg font-semibold">{manifestation.name}</h3>
-                <span className="text-xs bg-indigo-800 px-2 py-1 rounded-full">
-                  {Object.keys(manifestation.levels).length} levels
-                </span>
-              </div>
-              
-              <p className="text-gray-400 text-sm mb-4 line-clamp-2">
-                {manifestation.description || 'No description provided.'}
-              </p>
-              
-              {/* Active Operations Indicator */}
-              <div className="flex items-center justify-between mt-auto">
-                <div className="flex items-center space-x-2 text-sm text-gray-300">
-                  <Clock size={14} />
-                  <span>{new Date(manifestation.updatedAt).toLocaleDateString()}</span>
-                </div>
-                
-                {/* Check if any operations are running */}
-                {Object.values(manifestation.levels).some(level => 
-                  level.operationSettings.isRunning
-                ) ? (
-                  <div className="flex items-center text-emerald-400 text-sm">
-                    <Sparkles size={14} className="mr-1" />
-                    <span>Active</span>
-                  </div>
-                ) : (
-                  <div className="text-gray-500 text-sm">Inactive</div>
-                )}
-              </div>
+              <Plus size={16} />
+              <span className="font-bold text-lg">New Manifestation</span>
             </Link>
-          ))}
+          </div>
         </div>
-        
+
+        {/* Active Manifestation Grid */}
+        <div>
+          <h2 className="text-xl font-semibold mb-4 pl-2">Active Manifestations</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {manifestations
+              .filter((manifestation) =>
+                Object.values(manifestation.levels).some(
+                  (level) => level.operationSettings.isRunning,
+                ),
+              )
+              .map((manifestation) => {
+                const delay = Math.random() * 1.5;
+                return (
+                  <Link
+                    href={`/manifestations/${manifestation.id}`}
+                    key={manifestation.id}
+                    className="bg-gray-900 border border-indigo-700 rounded-lg p-5 hover:border-indigo-500 transition duration-200 relative overflow-hidden"
+                  >
+                    {/* <div
+                      className="absolute top-2 right-2 w-3 h-3 bg-emerald-400 rounded-full animate-blink"
+                      style={{ animationDelay: `${delay}s` }}
+                    /> */}
+
+                    <div className="mb-2 flex justify-between items-start">
+                      <h3 className="text-lg font-semibold">
+                        {manifestation.name}
+                      </h3>
+                      <span className="text-xs bg-indigo-800 px-2 py-1 rounded-full">
+                      {Object.keys(manifestation.levels).length} {Object.keys(manifestation.levels).length === 1 ? "level" : "levels"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between mt-auto">
+                      <div className="flex items-center space-x-2 text-sm text-gray-300">
+                        <Clock size={14} />
+                        <span>
+                          {new Date(manifestation.updatedAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="flex items-center text-emerald-400 text-sm gap-1">
+                        <div
+                          className="size-[10px] bg-emerald-400 rounded-full animate-blink mt-[2px]"
+                          style={{ animationDelay: `${delay + 0.5}s` }}
+                        />
+                        <span className="ml-1 font-mono">active</span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+          </div>
+        </div>
+
+
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold pl-2">Inactive Manifestations</h2>
+          </div>
+          {/* Saved Manifestation Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {manifestations
+              .filter(
+                (manifestation) =>
+                  !Object.values(manifestation.levels).some(
+                    (level) => level.operationSettings.isRunning,
+                  ),
+              )
+              .map((manifestation) => (
+                <Link
+                  href={`/manifestations/${manifestation.id}`}
+                  key={manifestation.id}
+                  className="bg-gray-800 bg-opacity-50 rounded-lg p-5 hover:bg-opacity-70 transition duration-200 border border-gray-700"
+                >
+                  <div className="mb-2 flex justify-between items-start">
+                    <h3 className="text-lg font-semibold">
+                      {manifestation.name}
+                    </h3>
+                    <span className="text-xs bg-indigo-800 px-2 py-1 rounded-full">
+                    {Object.keys(manifestation.levels).length} {Object.keys(manifestation.levels).length === 1 ? "level" : "levels"}
+
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between mt-auto">
+                    <div className="flex items-center space-x-2 text-sm text-gray-300">
+                      <Clock size={14} />
+                      <span>
+                        {new Date(manifestation.updatedAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="text-gray-500 text-sm">Inactive</div>
+                  </div>
+                </Link>
+              ))}
+          </div>
+        </div>
+
         {manifestations.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-400 mb-4">You haven&apos;t created any manifestations yet.</p>
-            <Link 
+            <p className="text-gray-400 mb-4">
+              You haven&apos;t created any manifestations yet.
+            </p>
+            <Link
               href="/manifestations/new"
               className="px-4 py-2 bg-indigo-600 rounded-md inline-flex items-center space-x-2 hover:bg-indigo-700 transition duration-200"
             >
@@ -90,11 +151,20 @@ export default function MenuScreen() {
           </div>
         )}
       </main>
-      
+
       {/* Footer */}
       <footer className="p-6 border-t border-gray-800 text-center text-gray-500 text-sm">
         <p>orb.space - Manifest your intentions through cosmic alignment.</p>
       </footer>
+      <style jsx global>{`
+        @keyframes blink {
+          0%, 50%, 100% { opacity: 1; }
+          25%, 75% { opacity: 0.3; }
+        }
+        .animate-blink {
+          animation: blink 1s infinite;
+        }
+      `}</style>
     </div>
   );
 }
