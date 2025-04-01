@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { prepopulatedManifestations } from "@/lib/manifestationData";
 import { Clock, Plus, User, Settings } from "lucide-react";
+import { SkeuoButton } from "@/components/skeuo-button";
 
 export default function MenuScreen() {
   const manifestations = Object.values(prepopulatedManifestations);
@@ -32,10 +33,12 @@ export default function MenuScreen() {
           <div className="w-full flex justify-center">
             <Link
               href="/manifestations/new"
-              className="px-4 py-2 bg-indigo-600 rounded-md flex items-center space-x-2 hover:bg-indigo-700 transition duration-200"
             >
-              <Plus size={16} />
-              <span className="font-bold text-lg">New Manifestation</span>
+              <SkeuoButton>
+
+             New Manifestation
+
+              </SkeuoButton>
             </Link>
           </div>
         </div>
